@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Stack;
+import java.util.EmptyStackException;
 
 public class JPanelListe2 extends JPanel implements ActionListener, ItemListener {
 
@@ -33,6 +35,7 @@ public class JPanelListe2 extends JPanel implements ActionListener, ItemListener
 
     private List<String> liste;
     private Map<String, Integer> occurrences;
+    private Stack<List<String>> pileEtat =  new Stack<List<String>>();
 
     public JPanelListe2(List<String> liste, Map<String, Integer> occurrences) {
         this.liste = liste;
@@ -67,6 +70,12 @@ public class JPanelListe2 extends JPanel implements ActionListener, ItemListener
         add(texte, "Center");
 
         boutonRechercher.addActionListener(this);
+        boutonRechercher.addActionListener(this);
+        ordreCroissant.addItemListener(this);
+        ordreDecroissant.addItemListener(this);
+        boutonOccurrences.addActionListener(this);
+        boutonRetirer.addActionListener(this);
+        boutonAnnuler.addActionListener(this);
         // à compléter;
 
     }
@@ -83,15 +92,26 @@ public class JPanelListe2 extends JPanel implements ActionListener, ItemListener
                 res = retirerDeLaListeTousLesElementsCommencantPar(saisie
                     .getText());
                 afficheur
-                .setText("résultat du retrait de tous les éléments commençant par -->  "
+                .setText("r�sultat du retrait de tous les �l�ments commen�ant par -->  "
                     + saisie.getText() + " : " + res);
             } else if (ae.getSource() == boutonOccurrences) {
                 Integer occur = occurrences.get(saisie.getText());
                 if (occur != null)
                     afficheur.setText(" -->  " + occur + " occurrence(s)");
                 else
-                    afficheur.setText(" -->  ??? ");
+                    afficheur.setText(" -->  0 ");
             }
+             else if (ae.getSource() == boutonAnnuler)
+             {
+              
+              
+                 try
+                 {
+                     liste = pileEtat.pop();
+                    }catch(EmptyStackException e){}
+                     occurrences = Chapitre2CoreJava2.occurrencesDesMots(liste);
+         
+                }
             texte.setText(liste.toString());
 
         } catch (Exception e) {
@@ -101,19 +121,54 @@ public class JPanelListe2 extends JPanel implements ActionListener, ItemListener
 
     public void itemStateChanged(ItemEvent ie) {
         if (ie.getSource() == ordreCroissant)
-        ;// à compléter
+            {
+                empiler();
+                Collections.sort(liste);
+                texte.setText(liste.toString());
+            }
         else if (ie.getSource() == ordreDecroissant)
-        ;// à compléter
+            {
+                empiler();
+                Collections.sort(liste, Collections.reverseOrder());
+                texte.setText(liste.toString());
+            }
 
         texte.setText(liste.toString());
     }
 
     private boolean retirerDeLaListeTousLesElementsCommencantPar(String prefixe) {
-        boolean resultat = false;
-        // à compléter
-        // à compléter
-        // à compléter
+         boolean resultat = false;
+         empiler();
+         Iterator<String> i = liste.iterator();
+        while(i.hasNext())
+        {
+           String str = i.next();
+          
+           if(str.startsWith(prefixe))
+           {
+               i.remove();
+               resultat = true;
+
+            }
+            
+           
+           
+        }
+        
+        if(!resultat) pileEtat.pop();
+          
+        occurrences = Chapitre2CoreJava2.occurrencesDesMots(liste);
         return resultat;
+    }
+    
+    public void empiler()
+    {
+        List<String> nouvelle =  new LinkedList<String>();
+        Iterator<String>i = liste.iterator();
+        while(i.hasNext())
+            nouvelle.add(i.next());
+        
+        pileEtat.push(nouvelle);
     }
 
 }
